@@ -427,6 +427,8 @@ github.com/vektra/mockery/v2/cmd
 github.com/vektra/mockery/v2/pkg
 github.com/vektra/mockery/v2/pkg/config
 github.com/vektra/mockery/v2/pkg/logging
+# github.com/wasmerio/wasmer-go v1.0.4
+## explicit; go 1.14
 # github.com/xlab/treeprint v1.1.0
 ## explicit; go 1.13
 github.com/xlab/treeprint
