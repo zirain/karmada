@@ -429,6 +429,12 @@ github.com/vektra/mockery/v2/pkg/config
 github.com/vektra/mockery/v2/pkg/logging
 # github.com/wasmerio/wasmer-go v1.0.4
 ## explicit; go 1.14
+github.com/wasmerio/wasmer-go/wasmer
+github.com/wasmerio/wasmer-go/wasmer/packaged/include
+github.com/wasmerio/wasmer-go/wasmer/packaged/lib
+github.com/wasmerio/wasmer-go/wasmer/packaged/lib/darwin-amd64
+github.com/wasmerio/wasmer-go/wasmer/packaged/lib/linux-aarch64
+github.com/wasmerio/wasmer-go/wasmer/packaged/lib/linux-amd64
 # github.com/xlab/treeprint v1.1.0
 ## explicit; go 1.13
 github.com/xlab/treeprint

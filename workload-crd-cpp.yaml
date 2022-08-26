@@ -1,0 +1,15 @@
+apiVersion: policy.karmada.io/v1alpha1
+kind: ClusterPropagationPolicy
+metadata:
+  name: workload-crd-cpp
+spec:
+  resourceSelectors:
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: workloads.workload.example.io
+  placement:
+    clusterAffinity:
+      clusterNames:
+        - member1
+        - member2
+        - member3

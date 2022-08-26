@@ -14,6 +14,7 @@ import (
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter/customizedinterpreter"
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter/customizedinterpreter/webhook"
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter/defaultinterpreter"
+	"github.com/karmada-io/karmada/pkg/resourceinterpreter/wasminterpreter"
 	"github.com/karmada-io/karmada/pkg/util/fedinformer/genericmanager"
 )
 
@@ -59,6 +60,7 @@ func NewResourceInterpreter(informer genericmanager.SingleClusterInformerManager
 type customResourceInterpreterImpl struct {
 	informer genericmanager.SingleClusterInformerManager
 
+	wasmInterpreter         *wasminterpreter.WasmInterpreter
 	customizedInterpreter   *customizedinterpreter.CustomizedInterpreter
 	defaultInterpreter      *defaultinterpreter.DefaultInterpreter
 	configurableInterpreter *configurableinterpreter.ConfigurableInterpreter
@@ -67,6 +69,11 @@ type customResourceInterpreterImpl struct {
 // Start starts running the component and will never stop running until the context is closed or an error occurs.
 func (i *customResourceInterpreterImpl) Start(ctx context.Context) (err error) {
 	klog.Infof("Starting custom resource interpreter.")
+
+	i.wasmInterpreter, err = wasminterpreter.NewWasmInterpreter(i.informer)
+	if err != nil {
+		return
+	}
 
 	i.customizedInterpreter, err = customizedinterpreter.NewCustomizedInterpreter(i.informer)
 	if err != nil {
@@ -86,12 +93,24 @@ func (i *customResourceInterpreterImpl) Start(ctx context.Context) (err error) {
 func (i *customResourceInterpreterImpl) HookEnabled(objGVK schema.GroupVersionKind, operation configv1alpha1.InterpreterOperation) bool {
 	return i.defaultInterpreter.HookEnabled(objGVK, operation) ||
 		i.configurableInterpreter.HookEnabled(objGVK, operation) ||
-		i.customizedInterpreter.HookEnabled(objGVK, operation)
+		i.customizedInterpreter.HookEnabled(objGVK, operation) ||
+		i.wasmInterpreter.HookEnabled(objGVK, operation)
 }
 
 // GetReplicas returns the desired replicas of the object as well as the requirements of each replica.
 func (i *customResourceInterpreterImpl) GetReplicas(object *unstructured.Unstructured) (replica int32, requires *workv1alpha2.ReplicaRequirements, err error) {
 	var hookEnabled bool
+
+	replica, requires, hookEnabled, err = i.wasmInterpreter.GetReplicas(context.TODO(), &webhook.RequestAttributes{
+		Operation: configv1alpha1.InterpreterOperationInterpretReplica,
+		Object:    object,
+	})
+	if err != nil {
+		return
+	}
+	if hookEnabled {
+		return
+	}
 
 	replica, requires, hookEnabled, err = i.configurableInterpreter.GetReplicas(object)
 	if err != nil {
